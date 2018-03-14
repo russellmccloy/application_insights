@@ -1,0 +1,141 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "defaultValue": "PROD",
+      "type": "string"
+    },
+    "alertRuleNameRequestDuration": {
+      "defaultValue": "Average Request Duration greater than threshold",
+      "type": "string"
+    },
+    "alertRuleNameCPUTime": {
+      "defaultValue": "Average CPU time greater than threshold",
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "defaultValue": 
+        "Azure_ApplicationInsights@xxxx.com.au"
+    },
+    "siteNames": {
+      "type": "array",
+      "defaultValue": [
+        "PatronPointsv1-",
+        "CardPrinterIntegrationv1-",
+        "SycoMigrationv1-",
+        "PatronDocumentv1-",
+        "PatronTierv1-",
+        "PatronPropertyProfilev1-",
+        "PatronProfilev1-",
+        "PatronRegistrationv1-",
+        "LuiIntegrationv1-",
+        "PatronRewardsv1-",
+        "SFMCIntegrationv1-",
+        "PatronDetailsv1-",
+        "PatronPinv1-",
+        "SkiDataIntegrationv1-",
+        "PatronPasswordv1-",
+        "PatronCardsv1-",
+        "LUIv1-",
+        "CC1Integrationv1-",
+        "StaffSettingsAndPermissionsv1-",
+        "SycoIntegrationv1-",
+        "PatronPointsTransferv1-",
+        "CanaryServicev1-",
+        "PatronProfilePermitv1-",
+        "PatronTierAggregatorv1-"
+      ]
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "comments": "[resourceId('microsoft.insights/components', concat(parameters('siteNames')[copyIndex()], parameters('environmentName')))]",
+      "type": "microsoft.insights/alertrules",
+      "name": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameRequestDuration'))]",
+      "apiVersion": "2014-04-01",
+      "location": "East US",
+      "copy": {
+        "name": "insightsCopy",
+        "count": "[length(parameters('siteNames'))]"
+      },
+      "tags": {
+        "[concat('hidden-link:', resourceId('microsoft.insights/components', parameters('siteNames')[copyIndex()]), parameters('environmentName'))]": "Resource"
+      },
+      "properties": {
+        "name": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameRequestDuration'))]",
+        "description": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameRequestDuration'))]",
+        "isEnabled": true,
+        "condition": {
+          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+          "dataSource": {
+            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+            "resourceUri": "[resourceId('microsoft.insights/components', concat(parameters('siteNames')[copyIndex()], parameters('environmentName')))]",
+            "metricName": "request.duration"
+          },
+          "threshold": 250,
+          "windowSize": "PT5M"
+        },
+        "actions": [
+          {
+            "$type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction, Microsoft.WindowsAzure.Management.Mon.Client",
+            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+            "sendToServiceOwners": true,
+            "customEmails": [
+              "[parameters('email')]"
+            ]
+          }
+        ]
+      },
+      "resources": [],
+      "dependsOn": [
+
+      ]
+    },
+    {
+      "comments": "[resourceId('microsoft.insights/components', concat(parameters('siteNames')[copyIndex()], parameters('environmentName')))]",
+      "type": "microsoft.insights/alertrules",
+      "name": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameCPUTime'))]",
+      "apiVersion": "2014-04-01",
+      "location": "East US",
+      "copy": {
+        "name": "websitescopy",
+        "count": "[length(parameters('siteNames'))]"
+      },
+      "tags": {
+        "[concat('hidden-link:', resourceId('microsoft.insights/components', parameters('siteNames')[copyIndex()]), parameters('environmentName'))]": "Resource"
+      },
+      "properties": {
+        "name": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameCPUTime'))]",
+        "description": "[concat(parameters('siteNames')[copyIndex()], parameters('environmentName'), ' - ', parameters('alertRuleNameCPUTime'))]",
+        "isEnabled": true,
+        "condition": {
+          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+          "dataSource": {
+            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+            "resourceUri": "[resourceId('microsoft.insights/components', concat(parameters('siteNames')[copyIndex()], parameters('environmentName')))]",
+            "metricName": "performanceCounter.percentage_processor_time.value"
+          },
+          "threshold": 80,
+          "windowSize": "PT5M"
+        },
+        "actions": [
+          {
+            "$type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction, Microsoft.WindowsAzure.Management.Mon.Client",
+            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+            "sendToServiceOwners": true,
+            "customEmails": [
+              "[parameters('email')]"
+            ]
+          }
+        ]
+      },
+      "resources": [],
+      "dependsOn": [
+
+      ]
+    }
+  ]
+}
